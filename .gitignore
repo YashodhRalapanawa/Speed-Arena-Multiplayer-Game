@@ -1,0 +1,18 @@
+# Node modules
+node_modules/
+
+# Local Java build artifacts
+/target/
+
+# Spring Boot / Java properties
+**/application.properties
+
+# Editor and OS files
+.idea/
+.DS_Store
+
+# Vite / frontend dev artifacts
+/dist/
+
+# Unity build output
+unity-build/
