@@ -1,13 +1,53 @@
 # Speed Arena Multiplayer Game
 
-A multiplayer racing game project with a Java Spring Boot backend and a React + Vite frontend.
+Speed Arena is a multiplayer racing game prototype with a Java Spring Boot backend and a React + Vite frontend.
 
-This repository includes:
-- `backend/` — Spring Boot service with REST, security, WebSocket, JPA, and MySQL support.
-- `frontend/` — React + Vite app that connects to the backend and renders the game UI.
-- `unity-build/` and `unity-editor/` — Unity assets and build output for the game.
+The project is structured into:
+- `backend/` — Spring Boot API, security, room management, leaderboard, and real-time racing state.
+- `frontend/` — React client, Lobby, Race UI, Leaderboard, and WebSocket multiplayer logic.
+- `unity-build/` and `unity-editor/` — Unity assets and build artifacts used for the game.
 
-## Quick start
+## What this project does
+
+- Supports user authentication with JWT (`/api/register`, `/api/login`).
+- Manages multiplayer race rooms with room creation, joining, and listing.
+- Tracks game results in a leaderboard via REST endpoints.
+- Uses WebSocket + STOMP for real-time car movement, room sync, map selection, and race start.
+- Runs a modern React app with Vite for the frontend experience.
+
+## Architecture overview
+
+### Backend
+- Spring Boot 3.3.2 with Java 17
+- Spring Web, Spring Data JPA, Spring Security, WebSocket, MySQL Connector
+- JWT-based authentication using `app.jwt.secret` and `app.jwt.expiration-ms`
+- REST controllers:
+  - `AuthController` — `/api/register`, `/api/login`
+  - `RoomController` — `/api/rooms/create`, `/api/rooms/join/{roomCode}`, `/api/rooms/{roomCode}`, `/api/rooms/list`
+  - `LB_GameResultController` — `/api/results/save`, `/api/results/leaderboard`
+  - `TestController` — secure JWT test endpoint `/api/secure-test`
+- Real-time WebSocket controller:
+  - `/ws-racing` socket endpoint
+  - STOMP send destinations: `/app/car.move`, `/app/player.join`, `/app/room.map.select`, `/app/game.start`, `/app/game.ping`
+  - Broadcast topics: `/topic/game-state`, `/topic/room/{roomId}`, `/topic/room/{roomId}/players`, `/topic/room/{roomId}/slots`, `/topic/room/{roomId}/map`, `/topic/room/{roomId}/start`, `/topic/room/{roomId}/winner`, `/topic/pong`
+- In-memory game room management for demo multiplayer state
+
+### Frontend
+- React with Vite
+- Routes:
+  - `/loading`
+  - `/homepage`
+  - `/home`
+  - `/lobby`
+  - `/race`
+  - `/leaderboard`
+  - `/ws-test`
+  - `/game`
+- Uses `@stomp/stompjs` and `sockjs-client` for WebSocket connectivity.
+- Uses local session storage to keep player identity, selected car color, room code, map selection, and start slot.
+- Includes utilities for track generation and multiplayer lobby logic.
+
+## Local setup
 
 1. Clone the project:
    ```bash
@@ -21,8 +61,15 @@ This repository includes:
    - Node.js (recommended latest LTS)
 
 3. Configure backend properties:
-   - Create or update `backend/src/main/resources/application.properties` with your local database and security settings.
-   - This file is intentionally ignored by Git, so each developer keeps their own local config.
+   - Create or update `backend/src/main/resources/application.properties`.
+   - Required local settings typically include:
+     - `spring.datasource.url`
+     - `spring.datasource.username`
+     - `spring.datasource.password`
+     - `spring.jpa.hibernate.ddl-auto`
+     - `app.jwt.secret`
+     - `app.jwt.expiration-ms`
+   - This file is intentionally ignored by Git to keep local secrets and database settings private.
 
 4. Run the backend:
    ```bash
@@ -43,9 +90,9 @@ This repository includes:
 
 - Start frontend dev server: `npm run dev`
 - Build frontend: `npm run build`
-- Run frontend preview: `npm run preview`
+- Preview frontend build: `npm run preview`
 - Run frontend tests: `npm run test:track`
-- Run backend with Maven: `mvn spring-boot:run`
+- Run backend: `mvn spring-boot:run`
 
 ## Notes
 
